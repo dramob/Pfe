@@ -48,19 +48,10 @@ def main():
         if not feedback_data.empty:
             st.header("Generate AI Recommendations")
             if st.button("Get Recommendations"):
-                combined_feedback = "\n".join(
-                    f"- {row['Name']}: {row['Feedback']} (Satisfaction: {row['Satisfaction']})"
-                    for _, row in feedback_data.iterrows()
-                )
-
-                st.subheader("Combined Feedback for AI")
-                st.text(combined_feedback)  # Debugging: Show combined feedback
-
                 recommendations = advisor.get_recommendations(feedback_data)
                 st.success("AI Recommendations:")
                 st.write(recommendations)
         else:
             st.warning("No feedback available yet.")
-
 if __name__ == "__main__":
     main()

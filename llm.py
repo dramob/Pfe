@@ -67,6 +67,10 @@ class CoachingAdvisorLLM:
             if not combined_feedback.strip():
                 return "No feedback available to generate recommendations."
 
+            # Debug: Print the combined feedback to ensure it's passed correctly
+            print("Combined Feedback Sent to AI:")
+            print(combined_feedback)
+
             # Generate advice using combined feedback
             return self.generate_advice(combined_feedback)
         except Exception as e:
