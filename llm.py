@@ -11,7 +11,14 @@ class CoachingAdvisorLLM:
         :param model_name: The model name to use (default is "gpt-4").
         :param temperature: Controls randomness in output.
         """
-        self.chat = ChatOpenAI(openai_api_key=api_key, model=model_name, temperature=temperature)
+        if not api_key:
+            raise ValueError("API key is not set. Please set the OPENAI_API_KEY environment variable or pass the key explicitly.")
+
+        self.chat = ChatOpenAI(
+            openai_api_key=api_key, 
+            model=model_name, 
+            temperature=temperature
+        )
 
     def generate_advice(self, feedback: str) -> str:
         """

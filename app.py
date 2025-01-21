@@ -1,11 +1,16 @@
 import streamlit as st
 from llm import CoachingAdvisorLLM
-from utils import  validate_feedback
-import os 
-# Load API key
+from utils import validate_feedback
+import os
 
+# Load API key from environment variable
 api_key = os.getenv("OPENAI_API_KEY")
 
+if not api_key:
+    st.error("API key is not set. Please set the OPENAI_API_KEY environment variable.")
+    st.stop()
+
+# Initialize the advisor with the API key
 advisor = CoachingAdvisorLLM(api_key)
 
 # Streamlit App
