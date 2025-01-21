@@ -1,45 +1,66 @@
 import streamlit as st
 from llm import CoachingAdvisorLLM
-from utils import validate_feedback
+from utils import save_feedback, load_feedback
 import os
 
-# Load API key from environment variable
+# Load API key
+from dotenv import load_dotenv
+load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 
 if not api_key:
     st.error("API key is not set. Please set the OPENAI_API_KEY environment variable.")
     st.stop()
 
-# Initialize the advisor with the API key
+# Initialize the advisor
 advisor = CoachingAdvisorLLM(api_key)
 
 # Streamlit App
 def main():
-    # Title and Description
-    st.title("Coaching Feedback Assistant")
-    st.write("""
-        Provide detailed feedback from your coaching sessions, and this app will generate actionable advice 
-        using GPT-4 to improve your coaching skills.
-    """)
+    profile = st.sidebar.selectbox("Select Profile", ["User", "Admin"])
 
-    # Input Section
-    st.header("Enter Coaching Feedback")
-    feedback = st.text_area("Provide detailed coaching feedback here:")
-    submit_button = st.button("Generate Advice")
+    if profile == "User":
+        st.title("User Feedback Form")
+        st.write("Please fill out this quick questionnaire.")
 
-    # Action on Submit
-    if submit_button:
-        if validate_feedback(feedback):
-            with st.spinner("Analyzing feedback and generating advice..."):
-                advice = advisor.generate_advice(feedback)
-                if "Error:" not in advice:
-                    st.success("Generated Advice:")
-                    st.write(advice)
-                else:
-                    st.error(advice)
+        # Feedback form
+        name = st.text_input("Name:")
+        feedback = st.text_area("Provide your coaching feedback:")
+        satisfaction = st.slider("Rate your satisfaction (1-10):", 1, 10, 5)
+        submit_button = st.button("Submit Feedback")
+
+        if submit_button:
+            if name and feedback:
+                save_feedback(name, feedback, satisfaction)
+                st.success("Thank you for your feedback!")
+            else:
+                st.warning("Please complete all fields before submitting.")
+
+    elif profile == "Admin":
+        st.title("Admin Dashboard")
+        st.write("View feedback and get AI recommendations.")
+
+        # Load Feedback
+        feedback_data = load_feedback()
+        st.dataframe(feedback_data)
+
+        # Generate Recommendations
+        if not feedback_data.empty:
+            st.header("Generate AI Recommendations")
+            if st.button("Get Recommendations"):
+                combined_feedback = "\n".join(
+                    f"- {row['Name']}: {row['Feedback']} (Satisfaction: {row['Satisfaction']})"
+                    for _, row in feedback_data.iterrows()
+                )
+
+                st.subheader("Combined Feedback for AI")
+                st.text(combined_feedback)  # Debugging: Show combined feedback
+
+                recommendations = advisor.get_recommendations(feedback_data)
+                st.success("AI Recommendations:")
+                st.write(recommendations)
         else:
-            st.warning("Please enter valid feedback before submitting.")
+            st.warning("No feedback available yet.")
 
-# Run the Streamlit App
 if __name__ == "__main__":
     main()
